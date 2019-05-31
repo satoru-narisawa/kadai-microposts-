@@ -90,6 +90,17 @@ class User extends Authenticatable
         return $this->followings()->where("follow_id",$userId)->exists();
     }
     
+    public function feed_microposts()
+    {
+        //ユーザーが->フォローしているユーザーを取得->pluck(引数のテーブル.のカラムのみを取り出すここではusersテーブルのidカラムを取得)
+        // ->toArray()は配列にするメソッド（つまりフォローしているユーザーのIDカラムのデータを配列にして変数へ代入してる）
+        $follow_user_ids = $this->followings()->pluck("users.id")->toArray();
+        //ついでに自分のidも配列に追加
+        $follow_user_ids[] = $this->id;
+        //micropostsテーブルのuser_idカラムの中で $follow_user_idsが含まれているものをリターンしている。
+        //whereInは（第１引数の中に含まれる（データベースのカラム）　第２引数をセレクトする
+        return Micropost::whereIn("user_id",$follow_user_ids);
+    }
 
 }
 
