@@ -101,6 +101,62 @@ class User extends Authenticatable
         //whereInは（第１引数の中に含まれる（データベースのカラム）　第２引数をセレクトする
         return Micropost::whereIn("user_id",$follow_user_ids);
     }
+    
+    
+    //ここから課題！ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    
+    
+    
+    
+    //ユーザーがお気に入りにしているMicropostインスタンスを取得
+    public function favorites()
+    {
+        return $this->belongsToMany(Micropost::class,"favorites","user_id","micropost_id")->withTimestamps();
+    }
+    
+    //投稿をお気に入りにする
+    public function favorite($micropostId)
+    {
+        //すでにお気に入りにしているか確認(していればtrue)
+        $exist = $this->favoriting($micropostId);
+
+        if($exist)
+        {
+            return false;
+        }
+        else
+        {
+            //ユーザーインスタンスから->お気に入りしているMicropostインスタンスを取得し->中間テーブルへ保存(引数は相手のid)
+            $this->favorites()->attach($micropostId);
+            return true;
+        }
+    }
+    
+    //お気に入りから外す
+    public function unfavorite($micropostId)
+    {
+        //すでにお気に入りしているか確認(していればtrue)
+        $exist = $this->favoriting($micropostId);
+
+        if($exist)
+        {
+            $this->favorites()->detach($micropostId);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    //お気に入りにしているかの確認
+    public function favoriting($micropostId)
+    {
+        //userインスタンスがお気に入りにしているMicropostインスタンスを取得->micropost_id=$micropostIdなら
+        //->確認する（同一ならtrue）
+        return $this->favorites()->where("micropost_id",$micropostId)->exists();
+    }
+
 
 }
 
